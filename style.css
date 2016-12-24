@@ -85,7 +85,7 @@ strong{
 .paper a:active {text-decoration:underline;}
 
 .title{
-	font-size:4.7em;
+	font-size:4em;
 	padding-top:30px;
 	padding-left:-10px;
 	padding-bottom: 0px;
@@ -265,6 +265,7 @@ h2{
 		width: 100%;
 		padding: 20px;
 	}
+
 	.q2Left,
 	.q2Right,
 	.wb2Left,
