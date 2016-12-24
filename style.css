@@ -71,18 +71,25 @@ body{
 	line-height:22px;
 	position:relative;
 	z-index:2;
+}
 
+.paper .y2k{
+		color:#DEB841;
 }
 
 strong{
 	line-height:0px;
 }
 
-.paper a{color:black;}
+
+
+.paper a.invite{color:#DEB841;}
+.paper a{color:#7CC576;}
 .paper a:link {text-decoration:underline;}
 .paper a:visited {text-decoration:underline;}
 .paper a:hover {text-decoration: bold;}
 .paper a:active {text-decoration:underline;}
+
 
 .title{
 	font-size:3em;
