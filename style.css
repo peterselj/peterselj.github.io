@@ -30,16 +30,6 @@ body{
 	}
 }
 
-@media (max-width:480px){
-	*{
-		display:none;
-	}
-
-	.paper{
-		display:inline;
-	}
-}
-
 .stickynote{
 	color:white;
 	text-align: right;
@@ -117,20 +107,19 @@ strong{
 	margin-right:30px;
 }
 
-.q2Left{
-	font-size:.8em;
+.q2Left,
+.q2Right {
 	width:45%;
 	text-align:justify;
 	line-height:22px;
+}
+
+.q2Left{
 	float:left;
 }
 
 .q2Right{
-	font-size: .8em;
 	float:right;
-	width:45%;
-	text-align:justify;
-	line-height:22px;
 }
 
 .q2LeftPrint{
@@ -263,3 +252,24 @@ h2{
 	cursor:pointer;
 }
 
+@media (max-width:480px){
+
+	.stickynote {
+		display: none;
+	}
+
+	.paper {
+		margin: 0;
+		max-width: 10000px;
+		min-width: 0;
+		width: 100%;
+		padding: 20px;
+	}
+	.q2Left,
+	.q2Right,
+	.wb2Left,
+	.wb2Right {
+		float: none;
+		width: auto;
+	}
+}
