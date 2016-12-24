@@ -85,12 +85,12 @@ strong{
 .paper a:active {text-decoration:underline;}
 
 .title{
-	font-size:4em;
+	font-size:3em;
 	padding-top:30px;
 	padding-left:-10px;
 	padding-bottom: 0px;
 	margin-bottom: 0px;
-	line-height: 0.7em;
+	line-height: 1em;
 }
 
 .paper img{
