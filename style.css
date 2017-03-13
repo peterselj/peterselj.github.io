@@ -63,14 +63,19 @@ body{
 	font-family: 'Vollkorn', "Palatino Linotype", Arial, sans-serif;
 	left:0%;
 	margin-left: 240px; /*16.75%; */
-	margin-top:30px;
-	margin-bottom:50px;
-	width:66.5%;
+	margin-top:-10px;
+	margin-bottom:-200px;
+	margin-right:-10px;
+	/*width:66.5%;*/
 	min-width:680.96px; /* 1060 - 848 - 678.4 */
-	max-width:1280px;
+	/*max-width:1280px;*/
 	line-height:22px;
 	position:relative;
 	z-index:2;
+}
+.paper2{
+	width:66.5%;
+	max-width:1280px;
 }
 
 .paper .y2k{
