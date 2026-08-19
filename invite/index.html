@@ -314,6 +314,7 @@
             <button class="btn btn-ghost" id="backBtn">Back</button>
             <button class="btn btn-primary" id="nextBtn" disabled>${index === QUESTIONS.length ? 'Submit' : 'Next'}</button>
           </div>
+          <div class="hint">Press ${q.choices.map((c, i) => indexToKey(i)).join(', ')} — or click</div>
         `;
         const existing = answers[q.id];
         el.querySelectorAll('.choice').forEach(node => {
@@ -348,6 +349,23 @@
     function indexToKey(i) {
       return String.fromCharCode(65 + i); // A, B, C...
     }
+
+    // Typeform-style keyboard shortcuts: on a choice screen, pressing A/B/C/D...
+    // selects the matching option (same as clicking it).
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const activeScreen = stage.querySelector('.screen.active');
+      if (!activeScreen) return;
+      const choicesContainer = activeScreen.querySelector('.choices');
+      if (!choicesContainer) return;
+      const key = e.key.toUpperCase();
+      if (key.length !== 1 || key < 'A' || key > 'Z') return;
+      const nodes = Array.from(choicesContainer.querySelectorAll('.choice'));
+      const idx = key.charCodeAt(0) - 65;
+      if (idx < 0 || idx >= nodes.length) return;
+      const q = QUESTIONS[current - 1];
+      selectChoice(activeScreen, q, nodes[idx]);
+    });
 
     function selectChoice(el, q, node) {
       el.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
