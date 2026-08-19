@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/AKfycbyMU_miUBvTvIrY7I9KNEzbBiVLSQENPJVfQvpmZkhF0bGVAOzAcvUcg8HF-5IEXViv/exec">
 <title>You're Invited 🎉</title>
 <style>
   html, body {
@@ -10,51 +11,29 @@
     padding: 0;
     height: 100%;
     background: #1b1b2f;
-    overflow: hidden;
-  }
-  iframe {
-    display: block;
-    width: 100%;
-    height: 100%;
-    height: 100dvh;
-    border: none;
-  }
-  .fallback {
-    position: fixed;
-    inset: 0;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 16px;
     color: #f4f4f9;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    padding: 24px;
   }
-  .fallback a {
-    color: #ff5470;
-    font-weight: 600;
-  }
-  body.no-js .fallback,
-  body.iframe-blocked .fallback { display: flex; }
-  body.no-js iframe,
-  body.iframe-blocked iframe { display: none; }
+  a { color: #ff5470; font-weight: 600; }
 </style>
+<script>
+  // Immediate JS redirect (belt-and-suspenders alongside the meta refresh above).
+  // We redirect rather than iframe the form: Apps Script's HTML Service loads
+  // the real content in its own nested sandbox iframe, and embedding that inside
+  // a second iframe here gets blocked by third-party cookie/storage restrictions
+  // in Brave, Safari, and Firefox strict mode. Redirecting keeps script.google.com
+  // as the top-level page, which always works.
+  window.location.replace(
+    "https://script.google.com/macros/s/AKfycbyMU_miUBvTvIrY7I9KNEzbBiVLSQENPJVfQvpmZkhF0bGVAOzAcvUcg8HF-5IEXViv/exec"
+  );
+</script>
 </head>
 <body>
-  <!-- The actual form + submission logic runs in Google Apps Script;
-       this page just gives it a nicer, memorable URL. -->
-  <iframe
-    src="https://script.google.com/macros/s/AKfycbyMU_miUBvTvIrY7I9KNEzbBiVLSQENPJVfQvpmZkhF0bGVAOzAcvUcg8HF-5IEXViv/exec"
-    title="Birthday Party RSVP"
-    allow="clipboard-write"
-  ></iframe>
-  <div class="fallback">
-    <p>Having trouble loading the invite?</p>
-    <a href="https://script.google.com/macros/s/AKfycbyMU_miUBvTvIrY7I9KNEzbBiVLSQENPJVfQvpmZkhF0bGVAOzAcvUcg8HF-5IEXViv/exec">
-      Open it directly here.
-    </a>
-  </div>
+  <p>Taking you to the invite&hellip; if nothing happens,
+    <a href="https://script.google.com/macros/s/AKfycbyMU_miUBvTvIrY7I9KNEzbBiVLSQENPJVfQvpmZkhF0bGVAOzAcvUcg8HF-5IEXViv/exec">click here</a>.</p>
 </body>
 </html>
