@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You're Invited 🎉</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #1b1b2f;
+    overflow: hidden;
+  }
+  iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    border: none;
+  }
+  .fallback {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    color: #f4f4f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    text-align: center;
+    padding: 24px;
+  }
+  .fallback a {
+    color: #ff5470;
+    font-weight: 600;
+  }
+  body.no-js .fallback,
+  body.iframe-blocked .fallback { display: flex; }
+  body.no-js iframe,
+  body.iframe-blocked iframe { display: none; }
+</style>
+</head>
+<body>
+  <!-- The actual form + submission logic runs in Google Apps Script;
+       this page just gives it a nicer, memorable URL. -->
+  <iframe
+    src="https://script.google.com/macros/s/AKfycbyMU_miUBvTvIrY7I9KNEzbBiVLSQENPJVfQvpmZkhF0bGVAOzAcvUcg8HF-5IEXViv/exec"
+    title="Birthday Party RSVP"
+    allow="clipboard-write"
+  ></iframe>
+  <div class="fallback">
+    <p>Having trouble loading the invite?</p>
+    <a href="https://script.google.com/macros/s/AKfycbyMU_miUBvTvIrY7I9KNEzbBiVLSQENPJVfQvpmZkhF0bGVAOzAcvUcg8HF-5IEXViv/exec">
+      Open it directly here.
+    </a>
+  </div>
+</body>
+</html>
