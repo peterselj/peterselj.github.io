@@ -412,7 +412,14 @@
     ];
     const BEARD_ROW_ORDER = [12, 11, 10, 9, 8]; // reveal order, bottom (chin) to top (cheek)
 
-    function drawAvatar(ctx, ox, oy, px, faceSlider, hairSlider, beardSlider) {
+    // `clear` defaults to true (clears the whole canvas first — needed on the
+    // reusable avatar-preview canvas so stale wide facial-hair tufts from a
+    // previous, larger drag value get wiped between redraws). Pass false when
+    // drawing onto a canvas that already has OTHER content on it (like the
+    // player card's backdrop) — clearing there would erase that content too,
+    // since this always clears the canvas's full pixel dimensions, not just
+    // the avatar's own footprint.
+    function drawAvatar(ctx, ox, oy, px, faceSlider, hairSlider, beardSlider, clear) {
       const faceHue = Math.round((faceSlider/10) * 360);
       const hairHue = Math.round((hairSlider/10) * 360);
       const faceColor = `hsl(${faceHue}, 65%, 68%)`;
@@ -420,7 +427,7 @@
       const beardColor = `hsl(${hairHue}, 45%, 24%)`;
       const beardLevel = Math.round((beardSlider/10) * BEARD_ROW_ORDER.length);
       const revealedRows = new Set(BEARD_ROW_ORDER.slice(0, beardLevel));
-      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      if (clear !== false) ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
       AVATAR_GRID.forEach((row, r) => {
         for (let c = 0; c < row.length; c++) {
           const ch = row[c];
@@ -576,11 +583,53 @@
     // Standard basketball/trading-card proportions: 2.5" x 3.5" (5:7).
     const CARD_W = 640, CARD_H = 896, CARD_RADIUS = 40;
     const CARD_FONT = "'Arial Black', Arial, sans-serif";
+    const CARD_PADDING = 50; // margin of opaque backdrop around the card itself
+
+    // Opaque backdrop matching the site's own ambient purple/stars background —
+    // without this, everything outside the card's rounded corners (and the
+    // corners themselves) is transparent, which looks washed out/translucent
+    // depending on what the PNG is viewed against.
+    function drawCardBackdrop(ctx, w, h) {
+      const grad = ctx.createRadialGradient(w*0.25, h*0.12, 0, w*0.25, h*0.12, Math.max(w,h)*0.9);
+      grad.addColorStop(0, '#1c1c3c');
+      grad.addColorStop(1, '#14142b');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      function blob(x, y, r, hex) {
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, hex + '66');
+        g.addColorStop(1, hex + '00');
+        ctx.fillStyle = g;
+        ctx.fillRect(x - r, y - r, r * 2, r * 2);
+      }
+      blob(w * 0.08, h * 0.04, w * 0.6, '#7c5cff');
+      blob(w * 0.97, h * 0.97, w * 0.55, '#ff5470');
+      blob(w * 0.9, h * 0.32, w * 0.35, '#ffd166');
+
+      // deterministic scatter (not Math.random) so the backdrop looks the
+      // same on the on-screen preview, the download, and the Drive copy
+      ctx.fillStyle = 'white';
+      for (let i = 0; i < 70; i++) {
+        const sx = (i * 137.5) % w;
+        const sy = (i * 78.3 + (i * i * 0.7) % h) % h;
+        ctx.globalAlpha = 0.25 + (i % 5) * 0.12;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 1 + (i % 3) * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
 
     function buildCardCanvas() {
       const canvas = document.createElement('canvas');
-      canvas.width = CARD_W; canvas.height = CARD_H;
+      canvas.width = CARD_W + CARD_PADDING * 2;
+      canvas.height = CARD_H + CARD_PADDING * 2;
       const ctx = canvas.getContext('2d');
+
+      drawCardBackdrop(ctx, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(CARD_PADDING, CARD_PADDING);
 
       roundRectPath(ctx, 0, 0, CARD_W, CARD_H, CARD_RADIUS);
       ctx.save();
@@ -594,7 +643,7 @@
       // avatar, scaled up and centered
       const avPx = 27;
       const avW = 12*avPx, avH = 16*avPx;
-      drawAvatar(ctx, (CARD_W-avW)/2, 56, avPx, avatarState.face, avatarState.hair, avatarState.beard);
+      drawAvatar(ctx, (CARD_W-avW)/2, 56, avPx, avatarState.face, avatarState.hair, avatarState.beard, false);
 
       // name banner — just the last name, big and legible
       const bannerY = 56 + avH + 20;
@@ -632,6 +681,8 @@
       roundRectPath(ctx, 2, 2, CARD_W-4, CARD_H-4, CARD_RADIUS);
       ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 3;
       ctx.stroke();
+
+      ctx.restore(); // end translate
 
       return canvas;
     }
