@@ -120,9 +120,11 @@
       title: "Josh's Birthday Party",
       location: 'The Green Room, Shaw Festival Theatre, Niagara-on-the-Lake',
       mapUrl: 'http://maps.app.goo.gl/pzfv4ys4NTH6Hz7C7',
-      // Sept 14, 6:30–8:30pm ET (EDT = UTC-4 in September). EDIT ME if the year is wrong.
-      startUTC: '20260914T223000Z', endUTC: '20260915T003000Z',
-      humanWhen: 'Monday, September 14 · 6:30–8:30pm',
+      // Sept 14, doors 8:30pm / game at 9pm ET (EDT = UTC-4 in September).
+      // Calendar entry starts at doors-open time; end time shifted to keep the
+      // original 2-hour span (now 8:30–10:30pm) — adjust endUTC if that's wrong.
+      startUTC: '20260915T003000Z', endUTC: '20260915T023000Z',
+      humanWhen: 'Monday, September 14 · Doors 8:30pm, game at 9:00pm',
     };
     function googleCalUrl() {
       const p = new URLSearchParams({ action:'TEMPLATE', text: EVENT.title, dates: `${EVENT.startUTC}/${EVENT.endUTC}`,
@@ -164,7 +166,7 @@
 
       eventNotice: { type:'choice',
         prompt: 'You carefully took note of the details:',
-        choices: ['Monday Sept 14th, 6:30pm, at the Green Room at the Shaw Festival Theatre'],
+        choices: ['Monday Sept 14th, doors at 8:30pm (game starts at 9), at the Green Room at the Shaw Festival Theatre'],
         linkAfter: { label: 'Open in Google Maps ↗', url: EVENT.mapUrl },
         next: 'name' },
 
