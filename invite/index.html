@@ -27,12 +27,21 @@
   .progress-fill { height:100%; width:0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
   .stage { flex:1; position:relative; }
   .screen {
-    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding: 28px 22px; text-align:center; opacity:0; transform: translateY(24px); pointer-events:none;
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+    text-align:center; opacity:0; transform: translateY(24px); pointer-events:none;
     transition: opacity 0.35s ease, transform 0.35s ease; overflow-y: auto;
   }
   .screen.active { opacity:1; transform: translateY(0); pointer-events:auto; }
   .screen.leaving { opacity:0; transform: translateY(-24px); }
+  /* `margin: auto 0` on the inner wrapper (not `justify-content:center` on
+     .screen itself) is what centers short content vertically. Unlike
+     justify-content:center, this degrades gracefully when content is taller
+     than the screen: it collapses to top-aligned instead of clipping the top
+     of the content out of scroll range. That clipped-top behavior was the
+     "question appears off screen at the top" bug on small mobile viewports. */
+  .screen-inner {
+    width:100%; margin: auto 0; padding: 28px 22px; display:flex; flex-direction:column; align-items:center;
+  }
 
   .q-index { color: var(--accent); font-weight:700; letter-spacing:0.08em; text-transform:uppercase; font-size:13px; margin-bottom:14px; }
   .q-prompt { font-size: clamp(21px, 4vw, 34px); font-weight:700; max-width:680px; line-height:1.3; margin-bottom:26px; min-height:1.3em; white-space:pre-wrap; }
@@ -216,12 +225,21 @@
     }
     function render() {
       setProgress();
+      // Choice auto-advance re-renders after only 160ms, but a leaving screen's
+      // fade-out (and its scheduled removal) takes 400ms. Tapping through a
+      // couple of questions quickly (normal on mobile) could previously stack
+      // 2-3 .screen elements on top of each other mid-fade — that's what showed
+      // up as overlapping question text and a phantom "pre-selected" choice
+      // (really the previous screen's selection, still fading underneath).
+      // Cutting any still-fading screen immediately, before starting a new
+      // transition, guarantees at most two screens ever coexist.
+      stage.querySelectorAll('.screen.leaving').forEach(s => s.remove());
       const el = buildScreen(currentId);
       const prev = stage.querySelector('.screen.active');
       stage.appendChild(el);
       requestAnimationFrame(() => {
         el.classList.add('active');
-        if (prev) { prev.classList.remove('active'); prev.classList.add('leaving'); setTimeout(()=>prev.remove(),400); }
+        if (prev) { prev.classList.remove('active'); prev.classList.add('leaving'); setTimeout(()=>{ if (prev.parentNode) prev.remove(); },400); }
       });
       const af = el.querySelector('[data-autofocus]');
       if (af) setTimeout(()=>af.focus(),350);
@@ -246,15 +264,17 @@
           : '';
         const isFinal = q.next === null;
         el.innerHTML = `
-          ${promptHtml}
-          <div class="choices">${choicesHtml}</div>
-          ${linkHtml}
-          <div class="error-msg" id="errorMsg"></div>
-          <div class="nav">
-            <button class="btn btn-ghost" id="backBtn">Back</button>
-            <button class="btn ${isFinal ? 'btn-submit' : 'btn-primary'}" id="nextBtn" disabled>${isFinal ? 'Submit' : 'Next'}</button>
+          <div class="screen-inner">
+            ${promptHtml}
+            <div class="choices">${choicesHtml}</div>
+            ${linkHtml}
+            <div class="error-msg" id="errorMsg"></div>
+            <div class="nav">
+              <button class="btn btn-ghost" id="backBtn">Back</button>
+              <button class="btn ${isFinal ? 'btn-submit' : 'btn-primary'}" id="nextBtn" disabled>${isFinal ? 'Submit' : 'Next'}</button>
+            </div>
+            <div class="hint">Press ${q.choices.map((c,i)=>indexToKey(i)).join(', ')} — or click${isFinal ? ', then press Submit' : ''}</div>
           </div>
-          <div class="hint">Press ${q.choices.map((c,i)=>indexToKey(i)).join(', ')} — or click${isFinal ? ', then press Submit' : ''}</div>
         `;
         const existing = answers[id];
         el.querySelectorAll('.choice').forEach(node => {
@@ -264,14 +284,16 @@
       } else {
         const isFinal = q.next === null;
         el.innerHTML = `
-          ${promptHtml}
-          <input class="text-input" id="textInput" placeholder="Type your answer..." data-autofocus value="${escapeAttr(answers[id]||'')}" />
-          <div class="error-msg" id="errorMsg"></div>
-          <div class="nav">
-            <button class="btn btn-ghost" id="backBtn">Back</button>
-            <button class="btn ${isFinal ? 'btn-submit' : 'btn-primary'}" id="nextBtn">${isFinal ? 'Submit' : 'Next'}</button>
+          <div class="screen-inner">
+            ${promptHtml}
+            <input class="text-input" id="textInput" placeholder="Type your answer..." data-autofocus value="${escapeAttr(answers[id]||'')}" />
+            <div class="error-msg" id="errorMsg"></div>
+            <div class="nav">
+              <button class="btn btn-ghost" id="backBtn">Back</button>
+              <button class="btn ${isFinal ? 'btn-submit' : 'btn-primary'}" id="nextBtn">${isFinal ? 'Submit' : 'Next'}</button>
+            </div>
+            <div class="hint">Press Enter ↵</div>
           </div>
-          <div class="hint">Press Enter ↵</div>
         `;
         el.querySelector('#textInput').addEventListener('keydown', e => { if (e.key==='Enter') attemptAdvance(el,id); });
       }
@@ -292,26 +314,28 @@
       const el = document.createElement('div');
       el.className = 'screen';
       el.innerHTML = `
-        <div class="q-prompt">${escapeHtml(QUESTIONS[id].prompt)}</div>
-        <canvas id="avatarCanvas" class="avatar-preview" width="260" height="280"></canvas>
-        <div class="slider-block">
-          <div class="slider-label"><span>Face</span></div>
-          <input type="range" class="rainbow" id="faceSlider" min="0" max="10" value="${avatarState.face}">
-        </div>
-        <div class="slider-block">
-          <div class="slider-label"><span>Hair</span></div>
-          <input type="range" class="rainbow" id="hairSlider" min="0" max="10" value="${avatarState.hair}">
-        </div>
-        <div class="slider-block">
-          <div class="slider-label"><span>Facial hair: no</span><span id="beardValueLabel">very yes</span></div>
-          <div class="custom-slider-track" id="beardTrack">
-            <div class="custom-slider-fill" id="beardFill"></div>
-            <div class="custom-slider-thumb" id="beardThumb"></div>
+        <div class="screen-inner">
+          <div class="q-prompt">${escapeHtml(QUESTIONS[id].prompt)}</div>
+          <canvas id="avatarCanvas" class="avatar-preview" width="260" height="280"></canvas>
+          <div class="slider-block">
+            <div class="slider-label"><span>Face</span></div>
+            <input type="range" class="rainbow" id="faceSlider" min="0" max="10" value="${avatarState.face}">
           </div>
-        </div>
-        <div class="nav">
-          <button class="btn btn-ghost" id="backBtn">Back</button>
-          <button class="btn btn-primary" id="nextBtn">Next</button>
+          <div class="slider-block">
+            <div class="slider-label"><span>Hair</span></div>
+            <input type="range" class="rainbow" id="hairSlider" min="0" max="10" value="${avatarState.hair}">
+          </div>
+          <div class="slider-block">
+            <div class="slider-label"><span>Facial hair: no</span><span id="beardValueLabel">very yes</span></div>
+            <div class="custom-slider-track" id="beardTrack">
+              <div class="custom-slider-fill" id="beardFill"></div>
+              <div class="custom-slider-thumb" id="beardThumb"></div>
+            </div>
+          </div>
+          <div class="nav">
+            <button class="btn btn-ghost" id="backBtn">Back</button>
+            <button class="btn btn-primary" id="nextBtn">Next</button>
+          </div>
         </div>
       `;
       const canvas = el.querySelector('#avatarCanvas');
@@ -694,18 +718,20 @@
       el.className = 'screen';
       const yes = answers.attending === "can't wait to be there!";
       el.innerHTML = `
-        <div class="q-prompt">${yes ? "boom shakalaka! 🏀" : "whatcha gonna do? 🤷"}</div>
-        <div class="final-wrap">
-          <div id="cardHolder"></div>
-          <div class="confirm-card">
-            <div><b>${EVENT.title}</b></div>
-            <div>${EVENT.humanWhen}</div>
-            <div>${EVENT.location} — <a href="${EVENT.mapUrl}" target="_blank" style="color:var(--gold)">map</a></div>
-            <div class="cal-buttons">
-              <a href="${googleCalUrl()}" target="_blank">+ Google Calendar</a>
-              <a href="${icsUrl()}" download="birthday-party.ics">⤓ .ics file</a>
+        <div class="screen-inner">
+          <div class="q-prompt">${yes ? "boom shakalaka! 🏀" : "whatcha gonna do? 🤷"}</div>
+          <div class="final-wrap">
+            <div id="cardHolder"></div>
+            <div class="confirm-card">
+              <div><b>${EVENT.title}</b></div>
+              <div>${EVENT.humanWhen}</div>
+              <div>${EVENT.location} — <a href="${EVENT.mapUrl}" target="_blank" style="color:var(--gold)">map</a></div>
+              <div class="cal-buttons">
+                <a href="${googleCalUrl()}" target="_blank">+ Google Calendar</a>
+                <a href="${icsUrl()}" download="birthday-party.ics">⤓ .ics file</a>
+              </div>
+              <div class="card-download-btn"><button class="btn btn-primary" id="downloadCardBtn">⤓ Download my card</button></div>
             </div>
-            <div class="card-download-btn"><button class="btn btn-primary" id="downloadCardBtn">⤓ Download my card</button></div>
           </div>
         </div>
       `;
